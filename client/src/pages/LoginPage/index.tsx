@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
+import { LoginForm, LoginErrors, PersonalDetails } from '../../Types';
+import { AppGlobalData } from "../../App";
 
-interface LoginForm {
-  email: string;
-  password: string;
-}
-interface LoginErrors {
-  emailError?: string | "";
-  passwordError?: string | "";
-}
 
 const LoginPage: React.FC = () => {
+  const { setApiToken, setPersonalDetails } = useContext(AppGlobalData);
+
+  const [loader, setLoader] = useState(false);
+  const [token, setToken] = useState("");
+  const [emailFlag, setEmailFlag] = useState(false);
+  const [passwordFlag, setPasswordFlag] = useState(false);
+  const [apiError, setApiError] = useState('');
   const [formData, setFormData] = useState<LoginForm>({
     email: "",
     password: "",
@@ -18,21 +19,14 @@ const LoginPage: React.FC = () => {
     emailError: "",
     passwordError: "",
   });
-  const [loader, setLoader] = useState(false);
-  const [token, setToken] = useState("");
-
-  const [emailFlag, setEmailFlag] = useState(false);
-  const [passwordFlag, setPasswordFlag] = useState(false);
-  let apiError = false;
+  
   useEffect(() => {
     let localToken = window.localStorage.getItem("token");
-    if (localToken !== null)
-      setToken(localToken ?? '');  
+    if (localToken !== null) setToken(localToken ?? "");
   }, []);
+
   useEffect(() => {
-    let savedData;
-    if (token !== '')
-      window.localStorage.setItem("token", token);
+    if (token !== "") window.localStorage.setItem("token", token);
   }, [token]);
 
   const handleInputChange = (
@@ -118,9 +112,18 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
 
       setToken(data[0].token);
+      if (setApiToken) setApiToken(data[0].token);
+      if (setPersonalDetails) setPersonalDetails(data[0].personalDetails as PersonalDetails)
       setLoader(false);
     } else {
-
+      try {
+        const errorData = await response.json(); // Attempt to parse the error response as JSON
+        if (errorData.message) {
+          setApiError(errorData.message); // Set the error message
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
       console.error("Login failed");
       setLoader(false);
     }
