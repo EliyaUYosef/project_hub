@@ -1,16 +1,23 @@
 import React, { useContext, useState, useEffect } from "react";
-import { LoginForm, LoginErrors, PersonalDetails } from '../../Types';
+import { LoginForm, LoginErrors, PersonalDetails } from "../../Types";
 import { AppGlobalData } from "../../App";
-
+import { useNavigate } from "react-router-dom";
+import Loader from "../../components/Loader";
 
 const LoginPage: React.FC = () => {
-  const { setApiToken, setPersonalDetails } = useContext(AppGlobalData);
+  const navigate = useNavigate();
 
+  const { setApiToken, setPersonalDetails } =
+    useContext(AppGlobalData);
   const [loader, setLoader] = useState(false);
   const [token, setToken] = useState("");
   const [emailFlag, setEmailFlag] = useState(false);
   const [passwordFlag, setPasswordFlag] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [personalDetailsLocal, setPersonalDetailsLocal] = useState(
+    {} as PersonalDetails
+  );
   const [formData, setFormData] = useState<LoginForm>({
     email: "",
     password: "",
@@ -19,10 +26,19 @@ const LoginPage: React.FC = () => {
     emailError: "",
     passwordError: "",
   });
-  
+  useEffect(() => {
+    if (loggedIn) {
+      console.log(personalDetailsLocal);
+      setApiToken(token);
+      setPersonalDetails(personalDetailsLocal);
+      navigate("/info");
+      setLoader(false);
+    }
+  }, [loggedIn]);
+
   useEffect(() => {
     let localToken = window.localStorage.getItem("token");
-    if (localToken !== null) setToken(localToken ?? "");
+    if (localToken !== "") setToken(localToken ?? "");
   }, []);
 
   useEffect(() => {
@@ -111,9 +127,9 @@ const LoginPage: React.FC = () => {
     if (response.ok) {
       const data = await response.json();
 
+      setPersonalDetailsLocal(data[0].personalDetails);
       setToken(data[0].token);
-      if (setApiToken) setApiToken(data[0].token);
-      if (setPersonalDetails) setPersonalDetails(data[0].personalDetails as PersonalDetails)
+      setLoggedIn(true);
       setLoader(false);
     } else {
       try {
@@ -130,7 +146,7 @@ const LoginPage: React.FC = () => {
   };
 
   return loader ? (
-    <div>Loading ... </div>
+    <Loader />
   ) : (
     <div>
       <h1>Login Page</h1>

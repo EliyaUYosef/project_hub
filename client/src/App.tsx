@@ -2,7 +2,8 @@ import React, { useState, createContext } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import {User,PersonalDetails,GlobalData} from './Types';
-// import InfoPage from './pages/InfoPage';
+import InfoPage from './pages/InfoPage';
+
 
 export const AppGlobalData = createContext({} as GlobalData);
 
@@ -10,20 +11,22 @@ function App() {
   const [appGlobalData, setAppGlobalData] = useState({} as GlobalData);
   const [userData,setUserData] = useState<User | {}>();
   const [apiToken,setApiToken] = useState<string | ''>('');
-  const [personalDetails,setPersonalDetails] = useState<PersonalDetails | {}>();
-
-  const stateUpdaterFunctions = {
-    setUserData,
-    setApiToken,
-    setPersonalDetails
-  };
+  const [personalDetails, setPersonalDetails] = useState<PersonalDetails>({
+    Team: "",
+    avatar: "",
+    name: "",
+    joinedAt: "",
+  });  
 
   const contextValue: GlobalData = {
-    ...stateUpdaterFunctions, // Include the state updater functions
     userData,
     apiToken,
     personalDetails,
-    setAppGlobalData
+    setApiToken,
+    setUserData,
+    setPersonalDetails,
+    
+    setAppGlobalData,
   };
 
   return (
@@ -35,13 +38,11 @@ function App() {
           <Link to="/about">About</Link>
         </nav>
         <Routes>
-         
           <Route
             path="/login"
             element={<LoginPage />}
           />
-          
-          {/* <Route path='/info' element={<Info />} /> */}
+          <Route path='/info' element={<InfoPage />} />
         </Routes>
       </AppGlobalData.Provider>
     </Router>
